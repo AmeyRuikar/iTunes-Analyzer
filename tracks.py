@@ -1,6 +1,9 @@
 import xml.etree.ElementTree as ET
 import sqlite3
 
+# run mdfind on a terminal and get the path to iTUNES file (.xml)   
+import subprocess
+
 conn = sqlite3.connect('trackdb.sqlite')
 cur = conn.cursor()
 
@@ -39,12 +42,14 @@ CREATE TABLE Track (
 ''')
 
 
-fname = 'iTunesMusic.xml'
-if ( len(fname) < 1 ) : fname = 'iTunesMusic..xml'
+#start a new process and run mdfind command
+p = subprocess.Popen(["mdfind","iTunes Music Library.xml"],  stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+filePath, err = p.communicate()
+if(err == ''):
+    fname = filePath.split('\n')[0]
 
-# <key>Track ID</key><integer>369</integer>
-# <key>Name</key><string>Another One Bites The Dust</string>
-# <key>Artist</key><string>Queen</string>
+if ( len(fname) < 1 ) : fname = 'iTunes Music Library.xml'
+
 def lookup(d, key):
     found = False
     for child in d:
@@ -122,12 +127,9 @@ print "\n Most played song ever -> ", mostPlayed
 cur.execute('''select title from Track 
                 where count =  (select MIN(count) from Track);''');
     
-leastPlayed = cur.fetchone()
+leastPlayed = cur.fetchone()[0]
     
-print "\n least played song ever -> "
-for song in cur.fetchone():
-    print song
-    cur.next()
-    
+print "\n least played song ever -> ", leastPlayed
+
 # lets try and use this fact
 
