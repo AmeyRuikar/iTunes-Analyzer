@@ -104,7 +104,6 @@ for entry in all:
         VALUES ( ? )''', ( genre, ) )
     cur.execute('SELECT id FROM Genre WHERE name = ? ', (genre, ))
     genre_id = cur.fetchone()[0]
-    
 
     cur.execute('''INSERT OR REPLACE INTO Track
         (title, album_id, genre_id, len, rating, count) 
@@ -114,6 +113,8 @@ for entry in all:
     conn.commit()
     
     
+    
+print "\n\nAnalysis\n\n"
 
 # out of loop analysis    
 cur.execute('''select title from Track 
@@ -130,6 +131,33 @@ cur.execute('''select title from Track
 leastPlayed = cur.fetchone()[0]
     
 print "\n least played song ever -> ", leastPlayed
-
 # lets try and use this fact
 
+#favorite artist
+
+cur.execute('''select name from artist ,
+                (select artist_id, MAX(col) from 
+                (select artist_id, count(*) as col from album
+                group by artist_id)) 
+                where id = artist_id;
+            ''');
+
+favouriteArtist = cur.fetchone()[0]
+print "\n Fav Artist: ", favouriteArtist
+    
+    
+    
+#favourite genre
+
+cur.execute('''select name from 
+                Genre,(select genre_id, MAX(CNT) from
+                (  
+                select genre_id, count(*) AS CNT from track
+                group by genre_id)) 
+                where genre_id = id and name <> 0;
+            ''');
+
+if cur.fetchone() != None:
+    favouriteGenre = cur.fetchone()[0]
+    print "\n Fav Genre: ", favouriteGenre
+    
